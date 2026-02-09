@@ -13,19 +13,9 @@ st.set_page_config(
     page_title="Keputusan Nelayan Berlayar",
     layout="centered"
 )
-
-# ===============================
-# CUSTOM BACKGROUND & STYLE
-# ===============================
 st.markdown(
     """
     <style>
-    /* Background halaman */
-    .stApp {
-        background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-        color: white;
-    }
-
     /* Container utama */
     section.main > div {
         max-width: 650px;
@@ -40,16 +30,10 @@ st.markdown(
         box-shadow: 0 10px 30px rgba(0,0,0,0.25);
         cursor: pointer !important;
     }
-
+    
     /* Judul */
     h1, h2, h3 {
-        color: #ffffff;
         text-align: center;
-    }
-
-    /* Teks & label */
-    label, p {
-        color: #f1f1f1 !important;
     }
 
     /* Input */
@@ -57,31 +41,21 @@ st.markdown(
         border-radius: 10px;
     }
 
-    div[data-testid="stFormSubmitButton"] button {
-        background-color: #2f4752 !important;
-        border-radius: 12px !important;
-        height: 48px !important;
-        width: 220px !important;
-        border: white 1px solid !important;
-    }
-
-    div[data-testid="stFormSubmitButton"] button span {
-        color: white !important;
-        opacity: 1 !important;
-        font-weight: 600 !important;
-        font-size: 16px !important;
-    }
-
     </style>
     """,
     unsafe_allow_html=True
 )
-
-
-st.title("🚤 Penentuan Keputusan Nelayan Berlayar")
-st.write(
-    "Pilih kondisi cuaca dan teknis kapal untuk mendapatkan "
-    "rekomendasi keputusan berlayar."
+st.markdown(
+    """
+    <div style="text-align: center; margin-bottom: 20px;">
+        <h1>🚤 Penentuan Keputusan Nelayan Berlayar</h1>
+        <p style="font-size: 16px;">
+            Pilih kondisi cuaca dan teknis kapal untuk mendapatkan
+            rekomendasi keputusan berlayar.
+        </p>
+    </div>
+    """,
+    unsafe_allow_html=True
 )
 
 # ===============================
@@ -186,29 +160,39 @@ if submit:
     # ===============================
     # OUTPUT PREDIKSI
     # ===============================
-    st.divider()
-    st.subheader("📋 Data Kondisi")
-    st.write(f"Kecepatan Angin: {wind_id}")
-    st.write(f"Ketinggian Gelombang: {wave_id}")
-    st.write(f"Kondisi Cuaca: {weather_id}")
-    st.write(f"Hari: {day_id}")
-    st.write(f"Kondisi Teknis Kapal: {boat_id}")
+    st.markdown("<div class='result-card'>", unsafe_allow_html=True)
 
-    st.divider()
+    # ---- Data Kondisi ----
+    st.subheader("📋 Data Kondisi")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.write(f"🌬️ **Kecepatan Angin:** {wind_id}")
+        st.write(f"🌊 **Ketinggian Gelombang:** {wave_id}")
+        st.write(f"☁️ **Kondisi Cuaca:** {weather_id}")
+
+    with col2:
+        st.write(f"📅 **Hari:** {day_id}")
+        st.write(f"🚢 **Kondisi Teknis Kapal:** {boat_id}")
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+
+    # ---- Probabilitas Keputusan ----
+    st.markdown("<div class='result-card'>", unsafe_allow_html=True)
     st.subheader("📊 Probabilitas Keputusan")
 
     labels = list(prob_dict.keys())
     sizes = list(prob_dict.values())
 
-    fig, ax = plt.subplots(figsize=(1, 1), facecolor="none")
-    ax.set_facecolor("none")
+    fig, ax = plt.subplots(figsize=(2.2, 2.2))
+
     wedges, texts, autotexts = ax.pie(
-    sizes,
-    autopct="%1.1f%%",
-    startangle=90,
-    radius=0.6,
-    pctdistance=0.7,
-    textprops={"fontsize": 4, "color": "white"}
+        sizes,
+        autopct="%1.1f%%",
+        startangle=90,
+        radius=0.85,
+        pctdistance=0.7,
+        textprops={"fontsize": 8}
     )
 
     ax.axis("equal")
@@ -219,11 +203,12 @@ if submit:
         title="Keputusan",
         loc="center left",
         bbox_to_anchor=(1, 0.5),
-        fontsize=4,
-        title_fontsize=4,
+        fontsize=8,
+        title_fontsize=9,
     )
 
-    st.pyplot(fig, transparent=True)
+    st.pyplot(fig)
+    st.markdown("</div>", unsafe_allow_html=True)
 
     # ===============================
     # INTERPRETASI DECISION TREE
@@ -243,57 +228,29 @@ if submit:
     prob_main = prob_dict[decision]
 
     # ===============================
-    # FAKTOR PENTING GLOBAL
-    # ===============================
-    st.divider()
-    st.subheader("📌 Faktor Penting")
-    st.markdown("""
-    <style>
-    .custom-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 15px;
-        color: white;
-        background: transparent;
-    }
-
-    .custom-table th {
-        background-color: rgba(255,255,255,0.08);
-        padding: 10px;
-        border: 1px solid rgba(255,255,255,0.2);
-        text-align: center;
-    }
-
-    .custom-table td {
-        padding: 10px;
-        border: 1px solid rgba(255,255,255,0.15);
-        text-align: center;
-        background: transparent;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-    html_table = importance_df.to_html(classes="custom-table", index=True, escape=False)
-    st.markdown(html_table, unsafe_allow_html=True)
-
-    # ===============================
     # SARAN
     # ===============================
     st.divider()
-    st.subheader("📝 Saran")
+    st.subheader("📝 Saran ")
 
     top_factors = importance_df.head(3)["Faktor"].tolist()
 
     saran_text = (
-        f"Berdasarkan hasil prediksi, pada kondisi ini "
-        f"machine memberikan probabilitas keputusan **{decision} untuk belayar sebesar {prob_main}%**. "
+        f"Berdasarkan hasil prediksi model Decision Tree, pada kondisi ini "
+        f"model memberikan probabilitas keputusan **{decision} sebesar {prob_main}%**. "
         f"Keputusan tersebut terutama dipengaruhi oleh faktor "
         f"**{', '.join(factors_used)}**.\n\n"
         f"Secara umum, faktor yang paling dominan dalam sistem ini adalah "
         f"**{top_factors[0]}**, diikuti oleh **{top_factors[1]}** dan "
         f"**{top_factors[2]}**.\n\n"
         f"Oleh karena itu, disarankan agar nelayan selalu memperhatikan "
-        f"faktor-faktor utama tersebut sebelum berlayar."
+        f"faktor-faktor utama tersebut sebelum berlayar. Dengan memahami "
+        f"kondisi cuaca, gelombang, dan kesiapan teknis kapal, keputusan "
+        f"berlayar dapat diambil secara lebih aman."
     )
 
     st.write(saran_text)
+
+
+
+
